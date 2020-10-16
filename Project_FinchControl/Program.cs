@@ -16,8 +16,8 @@ namespace Project_FinchControl
     // Description: An application that allows the finch to
     //              have an alarm system
     // Application Type: Console
-    // Dated Created: 10/014/2020
-    // Last Modified: 10/14/2020
+    // Dated Created: 10/14/2020
+    // Last Modified: 10/16/2020
     //
     // **************************************************
 
@@ -1336,7 +1336,7 @@ namespace Project_FinchControl
             do
             {
                 DisplayScreenHeader("Time to Monitor");
-                Console.Write($"\tTime to Monitor:");
+                Console.Write($"\tEnter time to Monitor [in seconds]:");
                 
 
                 if (!int.TryParse(Console.ReadLine(), out timeToMonitor))
@@ -1435,8 +1435,8 @@ namespace Project_FinchControl
         static string LightAlarmDisplaySetRangeType()
         {
             string rangeType;
-            string Minimum = "minimum";
-            string Maximum = "maximum";
+            string minimum = "minimum";
+            string maximum = "maximum";
             bool validInput = true;
             DisplayScreenHeader("Range Type");
 
@@ -1445,7 +1445,7 @@ namespace Project_FinchControl
                 Console.Write("\tRange Type [Minimum, Maximum]:");
                 rangeType = Console.ReadLine().ToLower();
 
-                if (rangeType != Minimum && rangeType != Maximum)
+                if (rangeType != minimum && rangeType != maximum)
                 {
                     validInput = false;
 
