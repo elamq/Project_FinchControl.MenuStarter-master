@@ -15,13 +15,13 @@ namespace Project_FinchControl
 
     // **************************************************
     //
-    // Title: Finch Control - S4 (User Programming)
+    // Title: Finch Control - S5 (Persistence)
     // Author: Quentin Elam
     // Description: An application that allows the user to
     //              program the finch robot
     // Application Type: Console
-    // Dated Created: 10/21/2020
-    // Last Modified: 10/28/2020
+    // Dated Created: 11/4/2020
+    // Last Modified: 11/6/2020
     //
     // **************************************************
 
@@ -33,7 +33,7 @@ namespace Project_FinchControl
         /// <param name="args"></param>
         static void Main(string[] args)
         {
-            SetTheme();
+            DisplaySetTheme();
 
             DisplayWelcomeScreen();
             DisplayMenuScreen();
@@ -42,10 +42,162 @@ namespace Project_FinchControl
         /// <summary>
         /// setup the console theme
         /// </summary>
-        static void SetTheme()
+        static void DisplaySetTheme()
         {
-            Console.ForegroundColor = ConsoleColor.DarkBlue;
-            Console.BackgroundColor = ConsoleColor.White;
+            (ConsoleColor foregroundColor, ConsoleColor backgroundcolor) themeColors;
+            bool themeChosen = true;
+            bool validResponse = true;
+            bool invalidResponse = true;
+
+            string userResponse;
+
+            //
+            // set current theme from data
+            //
+
+            themeColors = ReadThemeData();
+
+            Console.ForegroundColor = themeColors.foregroundColor;
+            Console.BackgroundColor = themeColors.backgroundcolor;
+
+            do
+            {
+                DisplayScreenHeader("Set Application Theme");
+
+                Console.WriteLine($"\tCurrent foreground color: {Console.ForegroundColor}");
+                Console.WriteLine($"\tCurrent background color: {Console.BackgroundColor}");
+                Console.WriteLine();
+
+                Console.Write("\tWould you like to change the current theme? [ yes | no ]:");
+                userResponse = Console.ReadLine().ToLower();
+
+                if (userResponse == "yes")
+                {
+                    do
+                    {
+                        Console.WriteLine();
+                        themeColors.foregroundColor = GetConsoleColorFromUser("foreground");
+                        themeColors.backgroundcolor = GetConsoleColorFromUser("background");
+
+                        //
+                        // Set the new theme
+                        //
+
+                        Console.ForegroundColor = themeColors.foregroundColor;
+                        Console.BackgroundColor = themeColors.backgroundcolor;
+                        Console.Clear();
+
+                        DisplayScreenHeader("Set Application Theme");
+                        Console.WriteLine($"\tNew foreground color: {Console.ForegroundColor}");
+                        Console.WriteLine($"\tNew background color: {Console.BackgroundColor}");
+                        do
+                        {
+                            Console.WriteLine();
+                            Console.Write("\tWould you like to keep this theme? [ yes | no ]:");
+                            userResponse = Console.ReadLine().ToLower();
+
+                            if (userResponse == "no")
+                            {
+                                themeChosen = true;
+                                invalidResponse = false;
+                            }
+                            else if (userResponse == "yes")
+                            {
+                                themeChosen = false;
+                                validResponse = true;
+                                invalidResponse = false;
+                                WriteThemeData(themeColors.foregroundColor, themeColors.backgroundcolor);
+                            }
+                            else
+                            {
+                                Console.WriteLine();
+                                Console.WriteLine("\tInvalid Response. Pease enter \"yes\" or \"no\"");
+                                invalidResponse = true;
+                            }
+
+                        } while (invalidResponse);
+
+                    } while (themeChosen);
+
+                }
+
+                else if (userResponse == "no")
+                {
+                    validResponse = true;
+                }
+                else
+                {
+                    Console.WriteLine();
+                    Console.WriteLine("\tInvalid Response. Pease enter \"yes\" or \"no\"");
+                    validResponse = false;
+                    DisplayContinuePrompt();
+                }
+
+            } while (!validResponse);
+
+            DisplayContinuePrompt();
+        }
+
+        /// <summary>
+        /// Writes the theme data to the text file
+        /// </summary>
+        /// <param name="foregroundColor"></param>
+        /// <param name="backgroundcolor"></param>
+        static void WriteThemeData(ConsoleColor foregroundColor, ConsoleColor backgroundcolor)
+        {
+            string dataPath = @"Data\Theme.txt";
+
+            File.WriteAllText(dataPath, foregroundColor.ToString() + "\n");
+            File.AppendAllText(dataPath, backgroundcolor.ToString());
+        }
+
+        /// <summary>
+        /// Gets the foreground and background colors from the user
+        /// </summary>
+        /// <param name="property"></param>
+        /// <returns></returns>
+        static ConsoleColor GetConsoleColorFromUser(string property)
+        {
+            ConsoleColor consoleColor;
+            bool validConsoleColor;
+
+            do
+            {
+                Console.Write($"\tChoose a color for the {property}: ");
+                validConsoleColor = Enum.TryParse<ConsoleColor>(Console.ReadLine(), true, out consoleColor);
+
+                if (!validConsoleColor)
+                {
+                    Console.WriteLine("\n\t***** It appears you did not enter a valid console color. Please try again. *****\n");
+                }
+                else
+                {
+                    validConsoleColor = true;
+                }
+
+            } while (!validConsoleColor);
+
+            return consoleColor;
+        }
+
+        /// <summary>
+        /// Reads the theme data from the text file
+        /// </summary>
+        /// <returns></returns>
+        static (ConsoleColor foregroundColor, ConsoleColor backgroundcolor) ReadThemeData()
+        {
+            string dataPath = @"Data\Theme.txt";
+            string[] themeColors;
+
+            ConsoleColor foregroundColor;
+            ConsoleColor backgroundColor;
+
+            themeColors = File.ReadAllLines(dataPath);
+
+            Enum.TryParse(themeColors[0], true, out foregroundColor);
+            Enum.TryParse(themeColors[1], true, out backgroundColor);
+
+            return (foregroundColor, backgroundColor);
         }
 
         /// <summary>
@@ -1048,44 +1200,44 @@ namespace Project_FinchControl
                 Console.Write("\t\tEnter Choice:");
                 menuChoice = Console.ReadLine().ToLower();
 
-                 //
-                 // process user menu choice
-                 //
-                 switch (menuChoice)
-                 {
-                     case "a":
+                //
+                // process user menu choice
+                //
+                switch (menuChoice)
+                {
+                    case "a":
                         sensorsToMonitor = LightAlarmDisplaySetSensorsToMonitor();
-                          break;
+                        break;
 
-                     case "b":
+                    case "b":
                         rangeType = LightAlarmDisplaySetRangeType();
-                          break;
+                        break;
 
-                     case "c":
+                    case "c":
                         minMaxThresholdValue = LightAlarmSetMinMaxThresholdValue(rangeType, finchRobot);
-                          break;
+                        break;
 
-                     case "d":
+                    case "d":
                         timeToMonitor = LightAlarmSetTimeToMonitor();
-                          break;
+                        break;
 
                     case "e":
                         LightAlarmSetAlarm(finchRobot, sensorsToMonitor, rangeType, minMaxThresholdValue, timeToMonitor);
                         break;
-                     case "q":
-                          quitMenu = true;
-                          break;
+                    case "q":
+                        quitMenu = true;
+                        break;
 
-                     default:
-                         Console.WriteLine();
-                         Console.WriteLine("\tPlease enter a letter for the menu choice.");
-                         DisplayContinuePrompt();
-                         break;
-                 }
+                    default:
+                        Console.WriteLine();
+                        Console.WriteLine("\tPlease enter a letter for the menu choice.");
+                        DisplayContinuePrompt();
+                        break;
+                }
 
             } while (!quitMenu);
 
-            
+
         }
 
         /// <summary>
@@ -1098,7 +1250,7 @@ namespace Project_FinchControl
         /// <param name="timeToMonitor"></param>
         private static void LightAlarmSetAlarm(Finch finchRobot, string sensorsToMonitor, string rangeType, int minMaxThresholdValue, int timeToMonitor)
         {
-            
+
             bool thresholdExceeded = false;
             bool validInput = true;
 
@@ -1307,7 +1459,7 @@ namespace Project_FinchControl
             if (thresholdExceeded)
             {
                 finchRobot.noteOn(1000);
-                
+
                 Console.WriteLine("\t***************************************************************************");
                 Console.WriteLine($"\t\tThe {rangeType} threshold value of {minMaxThresholdValue} was exceeded \t");
                 Console.WriteLine($"\t\tby the current light sensor value of {currentLightSensorValue.ToString("n1")}");
@@ -1341,7 +1493,7 @@ namespace Project_FinchControl
             {
                 DisplayScreenHeader("Time to Monitor");
                 Console.Write($"\tEnter time to Monitor [in seconds]:");
-                
+
 
                 if (!int.TryParse(Console.ReadLine(), out timeToMonitor))
                 {
@@ -1372,7 +1524,7 @@ namespace Project_FinchControl
 
             return timeToMonitor;
 
-            
+
         }
         /// <summary>
         /// Sets the minimum or maximum threshold value
@@ -1399,7 +1551,7 @@ namespace Project_FinchControl
             do
             {
                 Console.Write($"\tEnter the {rangeType} sensor value:");
-                
+
 
                 if (!int.TryParse(Console.ReadLine(), out minMaxThresholdValue))
                 {
@@ -1525,7 +1677,7 @@ namespace Project_FinchControl
                     DisplayMenuPrompt("Light Alarm");
                 }
 
-                
+
             } while (!validInput);
 
             return sensorsToMonitor;
@@ -1732,8 +1884,8 @@ namespace Project_FinchControl
             int commandCount = 1;
             Console.WriteLine("\tList of Available Commands");
             Console.WriteLine();
-            
-            
+
+
             foreach (string commandName in Enum.GetNames(typeof(Command)))
             {
                 Console.WriteLine($"\t- {commandName.ToLower()} -");
@@ -1969,7 +2121,7 @@ namespace Project_FinchControl
             do
             {
                 Console.Write(prompt);
-                
+
 
                 if (!int.TryParse(Console.ReadLine(), out parameter))
                 {
@@ -1979,7 +2131,7 @@ namespace Project_FinchControl
                     Console.WriteLine("\tYou did not enter a valid number. Please enter a number within the given range.");
                     Console.WriteLine();
 
-                    DisplayContinuePrompt();              
+                    DisplayContinuePrompt();
                 }
                 else if (parameter >= minValue && parameter <= maxValue)
                 {
